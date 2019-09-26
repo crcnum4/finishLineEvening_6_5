@@ -1,0 +1,17 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "finishLineEvening", "finishLineEvening\finishLineEvening.csproj", "{1C6B47E2-5E4F-4260-8DB6-EB4D35655FD6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|anycpu = Debug|anycpu
+		Release|anycpu = Release|anycpu
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1C6B47E2-5E4F-4260-8DB6-EB4D35655FD6}.Debug|anycpu.ActiveCfg = Debug|anycpu
+		{1C6B47E2-5E4F-4260-8DB6-EB4D35655FD6}.Debug|anycpu.Build.0 = Debug|anycpu
+		{1C6B47E2-5E4F-4260-8DB6-EB4D35655FD6}.Release|anycpu.ActiveCfg = Release|anycpu
+		{1C6B47E2-5E4F-4260-8DB6-EB4D35655FD6}.Release|anycpu.Build.0 = Release|anycpu
+	EndGlobalSection
+EndGlobal
