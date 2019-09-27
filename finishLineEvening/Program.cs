@@ -1,19 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace finishLineEvening
 {
-
-    using System;
-    using System.Collections.Generic;
-
-    // possible classes
-    // Die X
-    // Deck X
-    // Card X
-    // Player X
-    // Marker X
-    // FLMarker /
-    // Game or Board
 
     public class Die
     {
@@ -128,7 +117,7 @@ namespace finishLineEvening
 
         public Marker(string name)
         {
-            this.position = 12;
+            this.position = -1;
             this.name = name;
         }
 
@@ -146,8 +135,20 @@ namespace finishLineEvening
             this.stopped = false;
         }
 
-        public void Move(int spaces, int stopValue)
+        public void Move(int spaces, int stopValue, Deck gameDeck)
         {
+            for (int count = 1; count <= spaces; count++)
+            {
+                if (this.position + count >= gameDeck.cards.Count)
+                {
+                    return;
+                }
+                if (gameDeck.cards[this.position + count].val >= stopValue)
+                {
+                    Move(count);
+                    return;
+                }
+            }
             // preprocessing
             this.Move(spaces);
             // postprocess
@@ -156,16 +157,16 @@ namespace finishLineEvening
 
     public class Player
     {
-        public Marker[] markers;
+        public FLMarker[] markers;
         public string name;
 
         public Player(string name, string[] markerNames)
         {
-            this.markers = new Marker[markerNames.Length];
+            this.markers = new FLMarker[markerNames.Length];
             this.name = name;
             for (int markerName = 0; markerName < markerNames.Length; markerName++)
             {
-                this.markers[markerName] = new Marker(markerNames[markerName]);
+                this.markers[markerName] = new FLMarker(markerNames[markerName]);
             }
         }
 
@@ -185,6 +186,18 @@ namespace finishLineEvening
             }
             return master;
         }
+
+        public int FindMarker(string query)
+        {
+            for (int counter = 0; counter < this.markers.Length; counter++)
+            {
+                if (markers[counter].name == query)
+                {
+                    return counter;
+                }
+            }
+            return -1;
+        }
     }
 
     public class FinishLine
@@ -193,7 +206,7 @@ namespace finishLineEvening
         private readonly int[] VALUES = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
         private static int NUM_JOKERS = 2;
         private readonly string[] MARKER_NAMES = new string[] { "A", "B", "C" };
-
+        private readonly int[] RESTRICTED_VALUES = new int[] { 0, 1, 2, 11, 12, 13 };
         public Deck deck;
         public Die redDie;
         public Die blackDie;
@@ -210,25 +223,26 @@ namespace finishLineEvening
             this.redDie = new Die(6, 0xFF0000);
             this.blackDie = new Die(6, 0x000000);
             this.deck.Shuffle(rand);
+            ValidateDeck();
             this.redDie.Roll(rand);
             this.blackDie.Roll(rand);
         }
 
         public void DisplayBoard()
         {
-            // how to display
-            // \t[SVV]\t[SVV] [SVV] [SVV]
-            // \t_MMM_\t_MMM
-            // ABC
-            // AB
-            // BC
-            // C
-            // A C
 
             Console.Clear();
             string master = "";
             string cardRow = "\t";
             string playerRow = "\t";
+
+            cardRow += "Player1";
+            playerRow += this.player1.HasMarkersAt(-1);
+
+            master += cardRow + "\n" + playerRow + "\n\n";
+            cardRow = "\t";
+            playerRow = "\t";
+
             int counter = 0;
             foreach (Card card in this.deck.cards)
             {
@@ -250,23 +264,86 @@ namespace finishLineEvening
             Console.WriteLine(master);
         }
 
+        public void ValidateCard(int position)
+        {
+            if (Array.IndexOf(RESTRICTED_VALUES, this.deck.cards[position].val) >= 0)
+            {
+                while (true)
+                {
+                    int newPosition = this.rand.Next(3, 51);
+                    if (Array.IndexOf(RESTRICTED_VALUES, this.deck.cards[newPosition].val) >= 0)
+                    {
+                        continue;
+                    }
+                    Card temp = this.deck.cards[position];
+                    this.deck.cards[position] = this.deck.cards[newPosition];
+                    this.deck.cards[newPosition] = temp;
+                    break;
+                }
+            }
+        }
+
+        public void ValidateDeck()
+        {
+            int[] RESTRICTED_POSITIONS = new int[] { 0, 1, 2, 51, 52, 53 };
+            foreach (int position in RESTRICTED_POSITIONS)
+            {
+                ValidateCard(position);
+            }
+
+        }
+
+        public void Turn(Player player)
+        {
+            DisplayBoard();
+            string master = "";
+            master += player.name + "'s turn!\n";
+            this.redDie.Roll(this.rand);
+            this.blackDie.Roll(this.rand);
+            int stopValue = this.redDie.val + this.blackDie.val;
+            master += "Red: " + this.redDie.val + "\tBlack: " +
+                this.blackDie.val + "\tStop Value: " + stopValue + "\n";
+
+            GetMarker("Red", redDie, player, stopValue, master);
+            GetMarker("Black", blackDie, player, stopValue, master);
+        }
+
+        public void GetMarker(string dieName, Die die, Player player, int stopValue, string master)
+        {
+            Console.WriteLine(master);
+            Console.WriteLine("Choose marker (A, B, C) for {0} Die", dieName);
+            string input = Console.ReadLine();
+            int inputIndex = player.FindMarker(input.ToUpper());
+            player.markers[inputIndex].Move(die.val, stopValue, this.deck);
+            DisplayBoard();
+        }
+
+        public void Round()
+        {
+            // TODO: loop through players
+            Turn(player1);
+        }
+
+        public void PlayGame()
+
+        {
+            while(true)
+            {
+                Round();
+                //break;
+            }
+        }
+
+        // if(Player.hasMarkersAt(53) == "ABC") they win
     }
 
-    public class Program
-    {
-        public static void Main()
-        {
-            var game = new FinishLine(1, "player1");
-            game.DisplayBoard();
-        }
-    }
+
     class MainClass
     {
         public static void Main(string[] args)
         {
-            var game = new FinishLine(1 "Player 1");
-            game.DisplayBoard
-            Console.WriteLine("Hello World!");
+            var game = new FinishLine(1, "player1");
+            game.PlayGame();
         }
     }
 }
