@@ -318,10 +318,18 @@ namespace finishLineEvening
             DisplayBoard();
         }
 
-        public void Round()
+        public Player Round()
         {
             // TODO: loop through players
+
             Turn(player1);
+            if (DidWin(player1))
+                return player1;
+
+            return null;
+
+            // turn(player2)
+            // turn(player3)
         }
 
         public void PlayGame()
@@ -329,9 +337,18 @@ namespace finishLineEvening
         {
             while(true)
             {
-                Round();
-                //break;
+                Player winner = Round();
+                if (winner != null)
+                {
+                    Console.WriteLine("Congrats {0}! You win!", winner.name);
+                    break;
+                }
             }
+        }
+
+        private bool DidWin(Player player)
+        {
+            return player.HasMarkersAt(53) == "ABC";
         }
 
         // if(Player.hasMarkersAt(53) == "ABC") they win
